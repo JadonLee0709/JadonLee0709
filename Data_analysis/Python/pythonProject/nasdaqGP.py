@@ -12,12 +12,18 @@ import numpy as np
 nasdaq_csv_df = pd.read_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq.csv')
 nasdaq_event_FFR_df = pd.read_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq_event_FFR_ver_3.csv')
 
+nasdaq_csv_df['Date'] = pd.to_datetime(nasdaq_csv_df['Date'])
+nasdaq_event_FFR_df['Date'] = pd.to_datetime(nasdaq_event_FFR_df['Date'])
 # ── 1. 연준의 기준금리와 주가의 관계 ──────────────────────────────────────────
 
-nasdaq_csv_df['Close']
+fig, ax1 = plt.subplots(figsize=(14, 6))
+ax2 = ax1.twinx()
 
+ax1.plot(nasdaq_csv_df['Date'], nasdaq_csv_df['Close'], color='blue', label='QQQ Close')
+ax2.plot(nasdaq_csv_df['Date'], nasdaq_csv_df['FedRate'], color='red', label='Fed Rate')
 
-plt.plot(nasdaq_csv_df['Date'], nasdaq_csv_df['Close'], label='Close')
+ax1.set_ylabel('QQQ Price (USD)', color='blue')
+ax2.set_ylabel('Fed Rate (%)', color='red')
 
 plt.title('Nasdaq Price Movement')
 plt.xlabel('Date')
