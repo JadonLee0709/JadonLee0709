@@ -50,46 +50,46 @@ for date in rate_up['Date']:
     after = nasdaq_csv_df[nasdaq_csv_df['Date'] == date + pd.Timedelta(days=30)]['Close']
 
     if len(before) > 0 and len(after) > 0:
-        change_volume = (after.values[0] - before.values[0]) / before.values[0] * 100
-        rate_up_price_result.append({'Date': date, 'Change(%)': round(change_volume, 2)})
+        change_price = (after.values[0] - before.values[0]) / before.values[0] * 100
+        rate_up_price_result.append({'Date': date, 'Change(%)': round(change_price, 2)})
 
 print(pd.DataFrame(rate_up_price_result))
 
 results_df = pd.DataFrame(rate_up_price_result)
 
-fig5, ax5 = plt.subplots(figsize=(8, 6))
-ax5.axis('off')
-table = ax5.table(
+# 금리 변동 후 30일간 나스닥 수익률 표
+fig4, ax4 = plt.subplots(figsize=(8, 6))
+ax4.axis('off')
+table = ax4.table(
     cellText=results_df.values,
     colLabels=results_df.columns,
     loc='center',
-    cellLoc='center'
-)
+    cellLoc='center')
+
 table.auto_set_font_size(False)
 table.set_fontsize(10)
 table.scale(1.2, 1.5)
-ax5.set_title('Nasdaq movement for 30 days after announced FFR ', color='black')
+ax4.set_title('Nasdaq movement for 30 days after announced FFR ', color='black')
 plt.show()
 
 
-# 차트
+## 차트
 fig_a3, ax3 = plt.subplots(figsize=(14, 6))
-ax4 = ax3.twinx()
 
 # 그래프 곡선
-ax3.plot(nasdaq_csv_df['Date'], nasdaq_csv_df['Volume'], color='blue', label='Volume')
-ax4.plot(nasdaq_csv_df['Date'], nasdaq_csv_df['FedRate'], color='red', label='FedRate')
+colors = ['red' if x < 0 else 'blue' for x in results_df['Change(%)']]
+ax3.bar(results_df['Date'].astype(str), results_df['Change(%)'], color=colors)
+
 # 그래프 범례
-lines3, labels3 = ax3.get_legend_handles_labels()
-lines4, labels4 = ax4.get_legend_handles_labels()
-plt.legend(lines3+lines4, labels3+labels4, loc='upper left')
+ax3.axhline(y=0, color='black', linewidth=0.8)
 
 # 그래프
-ax3.set_title('Nasdaq Volume')
-ax3.set_xlabel('Date',color='black')
-ax3.set_ylabel('Volume (USD)', color='black')
-ax4.set_ylabel('Fed Rate (%)', color='black')
+ax3.set_title('Nasdaq movement for 30 days after announced FFR')
+ax3.set_xlabel('Date', color='black')
+ax3.set_ylabel('Change (%)', color='black')
 
+plt.xticks(rotation=45)
+plt.tight_layout()
 plt.grid(True)
 plt.show()
 
