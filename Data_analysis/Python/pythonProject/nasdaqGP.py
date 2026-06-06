@@ -9,11 +9,11 @@ import numpy as np
 # qqq.columns = qqq.columns.get_level_values(0)
 # qqq.reset_index().to_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq.csv', index=False)
 
-#nasdaq_csv_df = pd.read_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq.csv') #맥미니용
-#nasdaq_event_FFR_df = pd.read_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq_event_FFR_ver_3.csv') #맥미니용
+nasdaq_csv_df = pd.read_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq.csv') #맥미니용
+nasdaq_event_FFR_df = pd.read_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq_event_FFR_ver_3.csv') #맥미니용
 
-nasdaq_csv_df = pd.read_csv('/Users/ihyeonho/JadonLee0709/Data_analysis/Python/pythonProject/nasdaq.csv') #맥북용
-nasdaq_event_FFR_df = pd.read_csv('/Users/ihyeonho/JadonLee0709/Data_analysis/Python/pythonProject/nasdaq_event_FFR_ver_3.csv') #맥북용
+# # nasdaq_csv_df = pd.read_csv('/Users/ihyeonho/JadonLee0709/Data_analysis/Python/pythonProject/nasdaq.csv') #맥북용
+# nasdaq_event_FFR_df = pd.read_csv('/Users/ihyeonho/JadonLee0709/Data_analysis/Python/pythonProject/nasdaq_event_FFR_ver_3.csv') #맥북용
 
 nasdaq_csv_df['Date'] = pd.to_datetime(nasdaq_csv_df['Date'])
 nasdaq_event_FFR_df['Date'] = pd.to_datetime(nasdaq_event_FFR_df['Date'])
@@ -44,18 +44,18 @@ plt.show()
 # 연산
 rate_up = nasdaq_event_FFR_df[nasdaq_event_FFR_df['FedRateChange'] > 0 ]
 
-rate_up_volume_result = []
+rate_up_price_result = []
 for date in rate_up['Date']:
     before = nasdaq_csv_df[nasdaq_csv_df['Date'] == date]['Close']
     after = nasdaq_csv_df[nasdaq_csv_df['Date'] == date + pd.Timedelta(days=30)]['Close']
 
     if len(before) > 0 and len(after) > 0:
         change_volume = (after.values[0] - before.values[0]) / before.values[0] * 100
-        rate_up_volume_result.append({'Date': date, 'Change(%)': round(change_volume, 2)})
+        rate_up_price_result.append({'Date': date, 'Change(%)': round(change_volume, 2)})
 
-print(pd.DataFrame(rate_up_volume_result))
+print(pd.DataFrame(rate_up_price_result))
 
-results_df = pd.DataFrame(rate_up_volume_result)
+results_df = pd.DataFrame(rate_up_price_result)
 
 fig5, ax5 = plt.subplots(figsize=(8, 6))
 ax5.axis('off')
