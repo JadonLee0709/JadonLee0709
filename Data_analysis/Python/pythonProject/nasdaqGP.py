@@ -77,7 +77,7 @@ plt.show()
 fig_a3, ax3 = plt.subplots(figsize=(14, 6))
 
 # 그래프 곡선
-colors = ['red' if x < 0 else 'blue' for x in results_df['Change(%)']]
+colors = ['blue' if x < 0 else 'red' for x in results_df['Change(%)']]
 ax3.bar(results_df['Date'].astype(str), results_df['Change(%)'], color=colors)
 
 # 그래프 범례
