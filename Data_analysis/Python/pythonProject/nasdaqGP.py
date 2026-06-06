@@ -19,7 +19,7 @@ nasdaq_csv_df['Date'] = pd.to_datetime(nasdaq_csv_df['Date'])
 nasdaq_event_FFR_df['Date'] = pd.to_datetime(nasdaq_event_FFR_df['Date'])
 # ── 1. 연준의 기준금리와 주가의 관계 ──────────────────────────────────────────
 
-fig, ax1 = plt.subplots(figsize=(14, 6))
+fig_a1, ax1 = plt.subplots(figsize=(14, 6))
 ax2 = ax1.twinx()
 
 ax1.plot(nasdaq_csv_df['Date'], nasdaq_csv_df['Close'], color='blue', label='QQQ Close')
@@ -38,5 +38,59 @@ plt.grid(True)
 plt.show()
 
 
-# ── 최종 결과 (그래프) ──────────────────────────────────────────
-plt.plot(nasdaq_csv_df['Date'], nasdaq_csv_df['Close'], label='Close')
+# ── 2. 금리인상 직후 거래량 변화 ──────────────────────────────────────────
+
+
+# 연산
+rate_up = nasdaq_event_FFR_df[nasdaq_event_FFR_df['FedRateChange'] > 0 ]
+
+rate_up_volume_result = []
+for date in rate_up['Date']:
+    before = nasdaq_csv_df[nasdaq_csv_df['Date'] == date]['Close']
+    after = nasdaq_csv_df[nasdaq_csv_df['Date'] == date + pd.Timedelta(days=30)]['Close']
+
+    if len(before) > 0 and len(after) > 0:
+        change_volume = (after.values[0] - before.values[0]) / before.values[0] * 100
+        rate_up_volume_result.append({'Date': date, 'Change(%)': round(change_volume, 2)})
+
+print(pd.DataFrame(rate_up_volume_result))
+
+results_df = pd.DataFrame(rate_up_volume_result)
+
+fig5, ax5 = plt.subplots(figsize=(8, 6))
+ax5.axis('off')
+table = ax5.table(
+    cellText=results_df.values,
+    colLabels=results_df.columns,
+    loc='center',
+    cellLoc='center'
+)
+table.auto_set_font_size(False)
+table.set_fontsize(10)
+table.scale(1.2, 1.5)
+ax5.set_title('Nasdaq movement for 30 days after announced FFR ', color='black')
+plt.show()
+
+
+# 차트
+fig_a3, ax3 = plt.subplots(figsize=(14, 6))
+ax4 = ax3.twinx()
+
+# 그래프 곡선
+ax3.plot(nasdaq_csv_df['Date'], nasdaq_csv_df['Volume'], color='blue', label='Volume')
+ax4.plot(nasdaq_csv_df['Date'], nasdaq_csv_df['FedRate'], color='red', label='FedRate')
+# 그래프 범례
+lines3, labels3 = ax3.get_legend_handles_labels()
+lines4, labels4 = ax4.get_legend_handles_labels()
+plt.legend(lines3+lines4, labels3+labels4, loc='upper left')
+
+# 그래프
+ax3.set_title('Nasdaq Volume')
+ax3.set_xlabel('Date',color='black')
+ax3.set_ylabel('Volume (USD)', color='black')
+ax4.set_ylabel('Fed Rate (%)', color='black')
+
+plt.grid(True)
+plt.show()
+
+
