@@ -9,11 +9,11 @@ import numpy as np
 # qqq.columns = qqq.columns.get_level_values(0)
 # qqq.reset_index().to_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq.csv', index=False)
 
-nasdaq_csv_df = pd.read_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq.csv') #맥미니용
-nasdaq_event_FFR_df = pd.read_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq_event_FFR_ver_3.csv') #맥미니용
+#nasdaq_csv_df = pd.read_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq.csv') #맥미니용
+#nasdaq_event_FFR_df = pd.read_csv('/Users/ihyeonho/Desktop/Portfolio_DB/nasdaq_data_file/nasdaq_event_FFR_ver_3.csv') #맥미니용
 
-# # nasdaq_csv_df = pd.read_csv('/Users/ihyeonho/JadonLee0709/Data_analysis/Python/pythonProject/nasdaq.csv') #맥북용
-# nasdaq_event_FFR_df = pd.read_csv('/Users/ihyeonho/JadonLee0709/Data_analysis/Python/pythonProject/nasdaq_event_FFR_ver_3.csv') #맥북용
+nasdaq_csv_df = pd.read_csv('/Users/ihyeonho/JadonLee0709/Data_analysis/Python/pythonProject/nasdaq.csv') #맥북용
+nasdaq_event_FFR_df = pd.read_csv('/Users/ihyeonho/JadonLee0709/Data_analysis/Python/pythonProject/nasdaq_event_FFR_ver_3.csv') #맥북용
 
 nasdaq_csv_df['Date'] = pd.to_datetime(nasdaq_csv_df['Date'])
 nasdaq_event_FFR_df['Date'] = pd.to_datetime(nasdaq_event_FFR_df['Date'])
@@ -93,4 +93,42 @@ plt.tight_layout()
 plt.grid(True)
 plt.show()
 
+## 아래는 계산 아이디어 끄적거린것임
 
+# 금리 오른날 찾기
+print("전날보다 금리가 오른 날")
+nasdaq_FFR_diff = nasdaq_csv_df[nasdaq_csv_df['FedRate'].diff() > 0 ][['Date','FedRate']]
+print(nasdaq_FFR_diff)
+
+# 금리 인상일 전 후 5일간 Close값 비교
+
+rate_up_idx_5days = nasdaq_csv_df[nasdaq_csv_df['FedRate'].diff() > 0 ].index
+
+results_rate_up_idx_5days = []
+for idx in rate_up_idx_5days:
+    before = nasdaq_csv_df.iloc[idx-5:idx]['Close'].mean()
+    after = nasdaq_csv_df.iloc[idx:idx+5]['Close'].mean()
+    date = nasdaq_csv_df.iloc[idx]['Date']
+    results_rate_up_idx_5days.append({'Date': date, 'Before': round(before, 2), 'After': round(after, 2)})
+
+print(pd.DataFrame(results_rate_up_idx_5days))
+
+# 금리 인상일 전 후 30일단 Close값 비교
+
+rate_up_idx_30days = nasdaq_csv_df[nasdaq_csv_df['FedRate'].diff() > 0 ].index
+
+results_rate_up_idx_30days = []
+for idx in rate_up_idx_30days:
+    before = nasdaq_csv_df.iloc[idx-30:idx]['Close'].mean()
+    after = nasdaq_csv_df.iloc[idx:idx+30]['Close'].mean()
+    date = nasdaq_csv_df.iloc[idx]['Date']
+    results_rate_up_idx_30days.append({'Date': date, 'Before': round(before, 2), 'After': round(after, 2)})
+
+print(pd.DataFrame(results_rate_up_idx_30days))
+
+# 금리 인상 후 30일간 Close 변화율(%)
+
+df_30 = pd.DataFrame(results_rate_up_idx_30days)
+df_30['Change(%)'] = ((df_30['After'] - df_30['Before']) / df_30['Before'] * 100).round(2)
+print(df_30)
+print("평균 변화율 :", df_30['Change(%)'].mean().round(2), "%")
