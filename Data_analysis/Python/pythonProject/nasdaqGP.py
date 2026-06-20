@@ -123,6 +123,23 @@ plt.tight_layout()
 plt.grid(True)
 plt.show()
 
+# ── 4. 금리 인하 후 30일 수익률 ──────────────────────────────────────────
+
+rate_down = nasdaq_event_FFR_df[nasdaq_event_FFR_df['FedRateChange'] < 0 ]
+
+rate_down_price_result = []
+for date in rate_down['Date']:
+    before = nasdaq_csv_df[nasdaq_csv_df['Date'] == date]['Close']
+    after = nasdaq_csv_df[nasdaq_csv_df['Date'] == date + pd.Timedelta(days=30)]['Close']
+
+    if len(before) > 0 and len(after) > 0:
+        change_price = (after.values[0] - before.values[0]) / before.values[0] * 100
+        rate_down_price_result.append({'Date': date, 'Change(%)': round(change_price, 2)})
+
+results_down_df = pd.DataFrame(rate_down_price_result)
+print(results_down_df)
+print("평균 수익률 :", results_down_df['Change(%)'].mean().round(2), "%")
+
 # ## 아래는 계산 아이디어 끄적거린것임
 #
 # # 금리 오른날 찾기
@@ -165,11 +182,13 @@ plt.show()
 
 # print()
 nasdaq_merge_df['Return'] = nasdaq_merge_df['Close'].pct_change() * 100
-# nasdaq_FedRate_0 = nasdaq_merge_df[nasdaq_merge_df ['FedRate'] < 0.5]
-# nasdaq_FedRate_5 = nasdaq_merge_df[nasdaq_merge_df ['FedRate'] > 5 ]
+nasdaq_FedRate_0 = nasdaq_merge_df[nasdaq_merge_df ['FedRate'] < 0.5]
+nasdaq_FedRate_5 = nasdaq_merge_df[nasdaq_merge_df ['FedRate'] > 5 ]
 #
-# print("금리 0% 구간 평균 수익률",nasdaq_FedRate_0['Return'].mean().round(2),"%")
-# print("금리 5% 구간 평균 수익률",nasdaq_FedRate_5['Return'].mean().round(2),"%")
+print("금리 0% 구간 평균 수익률",nasdaq_FedRate_0['Return'].mean().round(2),"%")
+print(nasdaq_FedRate_0['Return'].std().round(2))
+print("금리 5% 구간 평균 수익률",nasdaq_FedRate_5['Return'].mean().round(2),"%")
+print(nasdaq_FedRate_5['Return'].std().round(2))
 
 nasdaq_merge_df['Year'] = nasdaq_merge_df['Date'].dt.year
 nasdaq_groupby = nasdaq_merge_df.groupby('Year')['Return'].mean().round(2)
