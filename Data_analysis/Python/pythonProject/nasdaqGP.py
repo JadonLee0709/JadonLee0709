@@ -112,12 +112,12 @@ plt.show()
 
 # ── 3. 연도별 QQQ 평균 수익률 ──────────────────────────────────────────
 
-nasdaq_merge_df['Return'] = nasdaq_merge_df['Close'].pct_change() * 100
+nasdaq_merge_df['Return'] = nasdaq_merge_df['Close'].pct_change() * 100 # ex) pct_change() (다음행-현재행)/현재행 즉 변화율
 nasdaq_merge_df['Year'] = nasdaq_merge_df['Date'].dt.year
 nasdaq_groupby = nasdaq_merge_df.groupby('Year')['Return'].mean().round(2)
 
 fig_a4, ax4_bar = plt.subplots(figsize=(14, 6))
-colors = ['red' if x >0 else 'blue' for x in nasdaq_groupby]
+colors = ['red' if x > 0 else 'blue' for x in nasdaq_groupby]
 ax4_bar.bar(nasdaq_groupby.index, nasdaq_groupby.values, color=colors)
 ax4_bar.axhline(y=0, color='black', linewidth=0.8)
 ax4_bar.set_title('QQQ ETF Annual Average Daily Return by Year')
@@ -141,9 +141,9 @@ for date in rate_down['Date']:
         change_price = (after.values[0] - before.values[0]) / before.values[0] * 100
         rate_down_price_result.append({'Date': date, 'Change(%)': round(change_price, 2)})
 
-results_down_df = pd.DataFrame(rate_down_price_result)
-print(results_down_df)
-print("평균 수익률 :", results_down_df['Change(%)'].mean().round(2), "%")
+results_rate_down_after30_df = pd.DataFrame(rate_down_price_result)
+print(results_rate_down_after30_df)
+print("평균 수익률 :", results_rate_down_after30_df['Change(%)'].mean().round(2), "%")
 
 # ## 아래는 계산 아이디어 끄적거린것임
 #
