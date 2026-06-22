@@ -34,8 +34,8 @@ nasdaq_merge_df['FedRate'] = nasdaq_merge_df['FedRate_ffr'].ffill()
 fig_a1, ax1 = plt.subplots(figsize=(14, 6))
 ax2 = ax1.twinx()
 
-ax1.plot(nasdaq_merge_df['Date'], nasdaq_merge_df['Close'], color='blue', label='QQQ Close')
-ax2.plot(nasdaq_merge_df['Date'], nasdaq_merge_df['FedRate'], color='red', label='Fed Rate')
+ax1.plot(nasdaq_merge_df['Date'], nasdaq_merge_df['Close'], color='blue', label='QQQ Close') # 날짜에 따른 종가의 변화
+ax2.plot(nasdaq_merge_df['Date'], nasdaq_merge_df['FedRate'], color='red', label='Fed Rate') # 날짜에 따른 연준금리의 변화
 
 ax1.set_ylabel('QQQ Price (USD)', color='black')
 ax2.set_ylabel('Fed Rate (%)', color='black')
@@ -55,14 +55,14 @@ plt.show()
 
 
 # 연산
-rate_up = nasdaq_event_FFR_df[nasdaq_event_FFR_df['FedRateChange'] > 0 ]
+rate_up = nasdaq_event_FFR_df[nasdaq_event_FFR_df['FedRateChange'] > 0 ] # FedRateChage = 전날대비 금리 변화 (평소에는 0). 즉 금리가 상승한 날
 
 rate_up_price_result = []
 for date in rate_up['Date']:
     before = nasdaq_csv_df[nasdaq_csv_df['Date'] == date]['Close']
     after = nasdaq_csv_df[nasdaq_csv_df['Date'] == date + pd.Timedelta(days=30)]['Close']
 
-    if len(before) > 0 and len(after) > 0:
+    if len(before) > 0 and len(after) > 0: # 해당 날짜의 데이터 존재 여부 확인 (주말/공휴일이면 빈 Series -> len=0)
         change_price = (after.values[0] - before.values[0]) / before.values[0] * 100
         rate_up_price_result.append({'Date': date, 'Change(%)': round(change_price, 2)})
 
@@ -71,14 +71,15 @@ print()
 print(pd.DataFrame(rate_up_price_result))
 print()
 
-results_df = pd.DataFrame(rate_up_price_result)
+results_rate_up_after30_df = pd.DataFrame(rate_up_price_result)
 
 # 금리 변동 후 30일간 나스닥 수익률 표
+
 fig4, ax4 = plt.subplots(figsize=(8, 6))
 ax4.axis('off')
 table = ax4.table(
-    cellText=results_df.values,
-    colLabels=results_df.columns,
+    cellText=results_rate_up_after30_df.values,
+    colLabels=results_rate_up_after30_df.columns,
     loc='center',
     cellLoc='center')
 
@@ -93,8 +94,8 @@ plt.show()
 fig_a3, ax3 = plt.subplots(figsize=(14, 6))
 
 # 그래프 곡선
-colors = ['blue' if x < 0 else 'red' for x in results_df['Change(%)']]
-ax3.bar(results_df['Date'].astype(str), results_df['Change(%)'], color=colors)
+colors = ['blue' if x < 0 else 'red' for x in results_rate_up_after30_df['Change(%)']]
+ax3.bar(results_rate_up_after30_df['Date'].astype(str), results_rate_up_after30_df['Change(%)'], color=colors)
 
 # 그래프 범례
 ax3.axhline(y=0, color='black', linewidth=0.8)
