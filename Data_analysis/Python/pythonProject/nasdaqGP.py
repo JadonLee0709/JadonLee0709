@@ -40,7 +40,7 @@ ax2.plot(nasdaq_merge_df['Date'], nasdaq_merge_df['FedRate'], color='red', label
 ax1.set_ylabel('QQQ Price (USD)', color='black')
 ax2.set_ylabel('Fed Rate (%)', color='black')
 
-plt.title('Nasdaq Price Movement')
+plt.title('QQQ ETF Price Movement')
 plt.xlabel('Date')
 plt.ylabel('Fed Rate (%)')
 lines1, labels1 = ax1.get_legend_handles_labels()
@@ -48,6 +48,7 @@ lines2, labels2 = ax2.get_legend_handles_labels()
 plt.legend(lines1+lines2, labels1+labels2, loc='upper left')
 plt.grid(True)
 plt.show()
+
 
 
 # ── 2. 금리인상 직후 거래량 변화 ──────────────────────────────────────────
@@ -65,7 +66,10 @@ for date in rate_up['Date']:
         change_price = (after.values[0] - before.values[0]) / before.values[0] * 100
         rate_up_price_result.append({'Date': date, 'Change(%)': round(change_price, 2)})
 
+print("Rate up price movement")
+print()
 print(pd.DataFrame(rate_up_price_result))
+print()
 
 results_df = pd.DataFrame(rate_up_price_result)
 
@@ -81,7 +85,7 @@ table = ax4.table(
 table.auto_set_font_size(False)
 table.set_fontsize(10)
 table.scale(1.2, 1.5)
-ax4.set_title('Nasdaq movement for 30 days after announced FFR ', color='black')
+ax4.set_title('QQQ ETF Price Movement for 30 days after announced FFR ', color='black')
 plt.show()
 
 
@@ -96,7 +100,7 @@ ax3.bar(results_df['Date'].astype(str), results_df['Change(%)'], color=colors)
 ax3.axhline(y=0, color='black', linewidth=0.8)
 
 # 그래프
-ax3.set_title('Nasdaq movement for 30 days after announced FFR')
+ax3.set_title('QQQ ETF Price Movement for 30 days after announced FFR')
 ax3.set_xlabel('Date', color='black')
 ax3.set_ylabel('Change (%)', color='black')
 
@@ -115,7 +119,7 @@ fig_a4, ax4_bar = plt.subplots(figsize=(14, 6))
 colors = ['red' if x >0 else 'blue' for x in nasdaq_groupby]
 ax4_bar.bar(nasdaq_groupby.index, nasdaq_groupby.values, color=colors)
 ax4_bar.axhline(y=0, color='black', linewidth=0.8)
-ax4_bar.set_title('QQQ Annual Average Daily Return by Year')
+ax4_bar.set_title('QQQ ETF Annual Average Daily Return by Year')
 ax4_bar.set_xlabel('Year', color='black')
 ax4_bar.set_ylabel('Return (%)', color='black')
 plt.xticks(rotation=45)
@@ -181,15 +185,15 @@ print("평균 수익률 :", results_down_df['Change(%)'].mean().round(2), "%")
 # print("평균 변화율 :", df_30['Change(%)'].mean().round(2), "%")
 
 # print()
-nasdaq_merge_df['Return'] = nasdaq_merge_df['Close'].pct_change() * 100
-nasdaq_FedRate_0 = nasdaq_merge_df[nasdaq_merge_df ['FedRate'] < 0.5]
-nasdaq_FedRate_5 = nasdaq_merge_df[nasdaq_merge_df ['FedRate'] > 5 ]
+# nasdaq_merge_df['Return'] = nasdaq_merge_df['Close'].pct_change() * 100
+# nasdaq_FedRate_0 = nasdaq_merge_df[nasdaq_merge_df ['FedRate'] < 0.5]
+# nasdaq_FedRate_5 = nasdaq_merge_df[nasdaq_merge_df ['FedRate'] > 5 ]
+# #
+# print("금리 0% 구간 평균 수익률",nasdaq_FedRate_0['Return'].mean().round(2),"%")
+# print(nasdaq_FedRate_0['Return'].std().round(2))
+# print("금리 5% 구간 평균 수익률",nasdaq_FedRate_5['Return'].mean().round(2),"%")
+# print(nasdaq_FedRate_5['Return'].std().round(2))
 #
-print("금리 0% 구간 평균 수익률",nasdaq_FedRate_0['Return'].mean().round(2),"%")
-print(nasdaq_FedRate_0['Return'].std().round(2))
-print("금리 5% 구간 평균 수익률",nasdaq_FedRate_5['Return'].mean().round(2),"%")
-print(nasdaq_FedRate_5['Return'].std().round(2))
-
-nasdaq_merge_df['Year'] = nasdaq_merge_df['Date'].dt.year
-nasdaq_groupby = nasdaq_merge_df.groupby('Year')['Return'].mean().round(2)
-print(nasdaq_groupby)
+# nasdaq_merge_df['Year'] = nasdaq_merge_df['Date'].dt.year
+# nasdaq_groupby = nasdaq_merge_df.groupby('Year')['Return'].mean().round(2)
+# print(nasdaq_groupby)
