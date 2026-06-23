@@ -31,27 +31,27 @@ nasdaq_merge_df['FedRate'] = nasdaq_merge_df['FedRate_ffr'].ffill()
 
 # ── 1. 연준의 기준금리와 주가의 관계 ──────────────────────────────────────────
 
-fig_a1, ax1 = plt.subplots(figsize=(14, 6))
-ax2 = ax1.twinx()
+fig_trend, ax_trend_1 = plt.subplots(figsize=(14, 6))
+ax_trend_2 = ax_trend_1.twinx()
 
-ax1.plot(nasdaq_merge_df['Date'], nasdaq_merge_df['Close'], color='blue', label='QQQ Close') # 날짜에 따른 종가의 변화
-ax2.plot(nasdaq_merge_df['Date'], nasdaq_merge_df['FedRate'], color='red', label='Fed Rate') # 날짜에 따른 연준금리의 변화
+ax_trend_1.plot(nasdaq_merge_df['Date'], nasdaq_merge_df['Close'], color='blue', label='QQQ Close') # 날짜에 따른 종가의 변화
+ax_trend_2.plot(nasdaq_merge_df['Date'], nasdaq_merge_df['FedRate'], color='red', label='Fed Rate') # 날짜에 따른 연준금리의 변화
 
-ax1.set_ylabel('QQQ Price (USD)', color='black')
-ax2.set_ylabel('Fed Rate (%)', color='black')
+ax_trend_1.set_ylabel('QQQ Price (USD)', color='black')
+ax_trend_2.set_ylabel('Fed Rate (%)', color='black')
 
 plt.title('QQQ ETF Price Movement')
 plt.xlabel('Date')
 plt.ylabel('Fed Rate (%)')
-lines1, labels1 = ax1.get_legend_handles_labels()
-lines2, labels2 = ax2.get_legend_handles_labels()
+lines1, labels1 = ax_trend_1.get_legend_handles_labels()
+lines2, labels2 = ax_trend_2.get_legend_handles_labels()
 plt.legend(lines1+lines2, labels1+labels2, loc='upper left')
 plt.grid(True)
 plt.show()
 
 
 
-# ── 2. 금리인상 직후 거래량 변화 ──────────────────────────────────────────
+# ── 2. 금리인상 직후 수익률 변화 ──────────────────────────────────────────
 
 
 # 연산
@@ -73,11 +73,11 @@ print()
 
 results_rate_up_after30_df = pd.DataFrame(rate_up_price_result)
 
-# 금리 변동 후 30일간 나스닥 수익률 표
+# 금리 변동 후 30일간 QQQ 수익률 표
 
-fig4, ax4 = plt.subplots(figsize=(8, 6))
-ax4.axis('off')
-table = ax4.table(
+fig_rate_up_after30, ax_rate_up_after30 = plt.subplots(figsize=(8, 6))
+ax_rate_up_after30.axis('off')
+table = ax_rate_up_after30.table(
     cellText=results_rate_up_after30_df.values,
     colLabels=results_rate_up_after30_df.columns,
     loc='center',
@@ -86,31 +86,31 @@ table = ax4.table(
 table.auto_set_font_size(False)
 table.set_fontsize(10)
 table.scale(1.2, 1.5)
-ax4.set_title('QQQ ETF Price Movement for 30 days after announced FFR ', color='black')
+ax_rate_up_after30.set_title('QQQ ETF Price Movement for 30 days after announced FFR ', color='black')
 plt.show()
 
 
 ## 차트
-fig_a3, ax3 = plt.subplots(figsize=(14, 6))
+fig_rate_up_after30_chart, ax_rate_up_after30_chart = plt.subplots(figsize=(14, 6))
 
 # 그래프 곡선
 colors = ['blue' if x < 0 else 'red' for x in results_rate_up_after30_df['Change(%)']]
-ax3.bar(results_rate_up_after30_df['Date'].astype(str), results_rate_up_after30_df['Change(%)'], color=colors)
+ax_rate_up_after30_chart.bar(results_rate_up_after30_df['Date'].astype(str), results_rate_up_after30_df['Change(%)'], color=colors)
 
 # 그래프 범례
-ax3.axhline(y=0, color='black', linewidth=0.8)
+ax_rate_up_after30_chart.axhline(y=0, color='black', linewidth=0.8)
 
 # 그래프
-ax3.set_title('QQQ ETF Price Movement for 30 days after announced FFR')
-ax3.set_xlabel('Date', color='black')
-ax3.set_ylabel('Change (%)', color='black')
+ax_rate_up_after30_chart.set_title('QQQ ETF Price Movement for 30 days after announced FFR')
+ax_rate_up_after30_chart.set_xlabel('Date', color='black')
+ax_rate_up_after30_chart.set_ylabel('Change (%)', color='black')
 
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.grid(True)
 plt.show()
 
-# ── 3. 금리인하 직후 거래량 변화 ──────────────────────────────────────────
+# ── 3. 금리인하 직후 수익률 변화 ──────────────────────────────────────────
 rate_down = nasdaq_event_FFR_df[nasdaq_event_FFR_df['FedRateChange'] < 0 ]
 
 
@@ -128,13 +128,13 @@ print(results_rate_down_after30_df)
 print("평균 수익률 :", results_rate_down_after30_df['Change(%)'].mean().round(2), "%")
 
 # 차트
-fig_a3_down, ax3_down = plt.subplots(figsize=(14, 6))
+fig_rate_down_after30_chart, ax_rate_down_after30_chart = plt.subplots(figsize=(14, 6))
 colors = ['blue' if x<0 else 'red' for x in results_rate_down_after30_df['Change(%)']]
-ax3_down.bar(results_rate_down_after30_df['Date'].astype(str), results_rate_down_after30_df['Change(%)'], color=colors)
-ax3_down.axhline(y=0, color='black', linewidth=0.8)
-ax3_down.set_title('QQQ ETF Price Movement for 30 days after FFR Cut')
-ax3_down.set_xlabel('Date', color = 'black')
-ax3_down.set_ylabel('Change (%)' , color = 'black')
+ax_rate_down_after30_chart.bar(results_rate_down_after30_df['Date'].astype(str), results_rate_down_after30_df['Change(%)'], color=colors)
+ax_rate_down_after30_chart.axhline(y=0, color='black', linewidth=0.8)
+ax_rate_down_after30_chart.set_title('QQQ ETF Price Movement for 30 days after FFR Cut')
+ax_rate_down_after30_chart.set_xlabel('Date', color ='black')
+ax_rate_down_after30_chart.set_ylabel('Change (%)', color ='black')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.grid(True)
@@ -146,13 +146,14 @@ nasdaq_merge_df['Return'] = nasdaq_merge_df['Close'].pct_change() * 100 # ex) pc
 nasdaq_merge_df['Year'] = nasdaq_merge_df['Date'].dt.year
 nasdaq_groupby = nasdaq_merge_df.groupby('Year')['Return'].mean().round(2)
 
-fig_a4, ax4_bar = plt.subplots(figsize=(14, 6))
+# 차트
+fig_annual_average_chart, ax_annual_average_chart = plt.subplots(figsize=(14, 6))
 colors = ['red' if x > 0 else 'blue' for x in nasdaq_groupby]
-ax4_bar.bar(nasdaq_groupby.index, nasdaq_groupby.values, color=colors)
-ax4_bar.axhline(y=0, color='black', linewidth=0.8)
-ax4_bar.set_title('QQQ Annual Performance by Year')
-ax4_bar.set_xlabel('Year', color='black')
-ax4_bar.set_ylabel('Return (%)', color='black')
+ax_annual_average_chart.bar(nasdaq_groupby.index, nasdaq_groupby.values, color=colors)
+ax_annual_average_chart.axhline(y=0, color='black', linewidth=0.8)
+ax_annual_average_chart.set_title('QQQ Annual Performance by Year')
+ax_annual_average_chart.set_xlabel('Year', color='black')
+ax_annual_average_chart.set_ylabel('Return (%)', color='black')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.grid(True)
