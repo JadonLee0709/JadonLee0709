@@ -77,15 +77,15 @@ results_rate_up_after30_df = pd.DataFrame(rate_up_price_result)
 
 fig_rate_up_after30, ax_rate_up_after30 = plt.subplots(figsize=(8, 6))
 ax_rate_up_after30.axis('off')
-table = ax_rate_up_after30.table(
+rate_up_after30_table_gp = ax_rate_up_after30.table(
     cellText=results_rate_up_after30_df.values,
     colLabels=results_rate_up_after30_df.columns,
     loc='center',
     cellLoc='center')
 
-table.auto_set_font_size(False)
-table.set_fontsize(10)
-table.scale(1.2, 1.5)
+rate_up_after30_table_gp.auto_set_font_size(False)
+rate_up_after30_table_gp.set_fontsize(10)
+rate_up_after30_table_gp.scale(1.2, 1.5)
 ax_rate_up_after30.set_title('QQQ ETF Price Movement for 30 days after announced FFR ', color='black')
 plt.show()
 
@@ -114,16 +114,16 @@ plt.show()
 rate_down = nasdaq_event_FFR_df[nasdaq_event_FFR_df['FedRateChange'] < 0 ]
 
 
-rate_down_price_result = []
+rate_down_after30_result = []
 for date in rate_down['Date']:
     before = nasdaq_csv_df[nasdaq_csv_df['Date'] == date]['Close']
     after = nasdaq_csv_df[nasdaq_csv_df['Date'] == date + pd.Timedelta(days=30)]['Close']
 
     if len(before) > 0 and len(after) > 0:
         change_price = (after.values[0] - before.values[0]) / before.values[0] * 100
-        rate_down_price_result.append({'Date': date, 'Change(%)': round(change_price, 2)})
+        rate_down_after30_result.append({'Date': date, 'Change(%)': round(change_price, 2)})
 
-results_rate_down_after30_df = pd.DataFrame(rate_down_price_result)
+results_rate_down_after30_df = pd.DataFrame(rate_down_after30_result)
 print(results_rate_down_after30_df)
 print("평균 수익률 :", results_rate_down_after30_df['Change(%)'].mean().round(2), "%")
 
@@ -139,6 +139,25 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.grid(True)
 plt.show()
+
+# 표
+
+results_rate_down_after30_df = pd.DataFrame(rate_down_after30_result)
+
+fig_rate_down_after30_table, ax_rate_down_after30_table = plt.subplots(figsize=(8, 6))
+ax_rate_down_after30_table.axis('off')
+rate_down_after30_table_gp = ax_rate_down_after30_table.table(
+    cellText=results_rate_down_after30_df.values,
+    colLabels=results_rate_down_after30_df.columns,
+    loc='center',
+    cellLoc='center')
+
+rate_down_after30_table_gp.auto_set_font_size(False)
+rate_down_after30_table_gp.set_fontsize(10)
+rate_down_after30_table_gp.scale(1.2, 1.5)
+ax_rate_down_after30_table.set_title('QQQ ETF Price Movement for 30 days after announced FFR ', color='black')
+plt.show()
+
 
 # ── 4. 연도별 QQQ 평균 수익률 ──────────────────────────────────────────
 
