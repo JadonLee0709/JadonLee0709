@@ -120,7 +120,7 @@ fig_a4, ax4_bar = plt.subplots(figsize=(14, 6))
 colors = ['red' if x > 0 else 'blue' for x in nasdaq_groupby]
 ax4_bar.bar(nasdaq_groupby.index, nasdaq_groupby.values, color=colors)
 ax4_bar.axhline(y=0, color='black', linewidth=0.8)
-ax4_bar.set_title('QQQ ETF Annual Average Daily Return by Year')
+ax4_bar.set_title('QQQ Annual Performance by Year')
 ax4_bar.set_xlabel('Year', color='black')
 ax4_bar.set_ylabel('Return (%)', color='black')
 plt.xticks(rotation=45)
