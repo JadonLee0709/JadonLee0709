@@ -1,5 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy import stats
+import pymysql
+import sqlalchemy
 import numpy as np
 # import yfinance as yf
 
@@ -113,7 +116,6 @@ plt.show()
 # ── 3. 금리인하 직후 수익률 변화 ──────────────────────────────────────────
 rate_down = nasdaq_event_FFR_df[nasdaq_event_FFR_df['FedRateChange'] < 0 ]
 
-
 rate_down_after30_result = []
 for date in rate_down['Date']:
     before = nasdaq_csv_df[nasdaq_csv_df['Date'] == date]['Close']
@@ -178,8 +180,25 @@ plt.tight_layout()
 plt.grid(True)
 plt.show()
 
+# 인상 후 30일 수익률 vs 인하 후 30일 수익률 비교
+t_stat, p_value = stats.ttest_ind(
+    results_rate_up_after30_df['Change(%)'],
+    results_rate_down_after30_df['Change(%)'],
+    equal_var=False  # 두 그룹의 분산이 같다고 가정하지 않음 (Welch's t-test)
+)
 
+print("=== 금리 인상 vs 인하 후 30일 수익률 t-test ===")
+print(f"인상 그룹 평균: {results_rate_up_after30_df['Change(%)'].mean():.2f}%  (n={len(results_rate_up_after30_df)})")
+print(f"인하 그룹 평균: {results_rate_down_after30_df['Change(%)'].mean():.2f}%  (n={len(results_rate_down_after30_df)})")
+print(f"t-statistic: {t_stat:.3f}")
+print(f"p-value: {p_value:.3f}")
 
+if p_value < 0.05:
+    print("→ 통계적으로 유의미한 차이 있음 (p < 0.05)")
+else:
+    print("→ 통계적으로 유의미한 차이 없음 (p >= 0.05), 표본 크기 등을 고려해 해석 주의")
+
+################################################################################
 # ## 아래는 계산 아이디어 끄적거린것임
 #
 # # 금리 오른날 찾기
