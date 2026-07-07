@@ -52,9 +52,9 @@
 
 *(그래프 이미지는 `/images` 폴더에 있습니다 — 실제 파일명으로 아래 링크 교체 필요)*
 
-- ![금리-주가 이중축 차트](images/twinx_chart.png)
-- ![연간 수익률](images/annual_return.png)
-- ![변동성 비교](images/volatility_comparison.png)
+- ![금리-주가 이중축 차트](image/QQQ ETF Price Movement.png)
+- ![연간 수익률](image/QQQ Annual Performance by Year.png)
+- ![변동성 비교](image/FFR_volatility_comparison.png)
 
 ---
 
