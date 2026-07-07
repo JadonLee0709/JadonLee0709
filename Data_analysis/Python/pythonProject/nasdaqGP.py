@@ -180,7 +180,25 @@ plt.tight_layout()
 plt.grid(True)
 plt.show()
 
-# 인상 후 30일 수익률 vs 인하 후 30일 수익률 비교
+# ── 5. 금리 0% 구간 vs 금리 5% 구간 수익률 비교 ──────────────────────────────────────────
+categories = ['FFR 0%p', 'FFR 5%p']
+returns = [0.08, 0.12]
+volatility = [1.27, 1.09]
+
+x = range(len(categories))
+width = 0.35
+
+fig, ax1 = plt.subplots(figsize=(8,6))
+ax1.bar([i - width/2 for i in x], returns, width, label='Avg Return(%)', color='blue')
+ax1.bar([i + width/2 for i in x], volatility, width, label='Volatility(%)', color='red')
+ax1.set_xticks(x)
+ax1.set_xticklabels(categories)
+ax1.set_ylabel('%')
+ax1.set_title('QQQ Return & Volatility: FFR 0%p vs 5%p')
+ax1.legend()
+plt.show()
+
+# 인상 후 30일 수익률 vs 인하 후 30일 수익률 비교 (t - test)
 t_stat, p_value = stats.ttest_ind(
     results_rate_up_after30_df['Change(%)'],
     results_rate_down_after30_df['Change(%)'],
@@ -196,7 +214,7 @@ print(f"p-value: {p_value:.3f}")
 if p_value < 0.05:
     print("→ 통계적으로 유의미한 차이 있음 (p < 0.05)")
 else:
-    print("→ 통계적으로 유의미한 차이 없음 (p >= 0.05), 표본 크기 등을 고려해 해석 주의")
+    print("→ 통계적으로 유의미한 차이 없음 (p >= 0.05)")
 
 ################################################################################
 # ## 아래는 계산 아이디어 끄적거린것임
