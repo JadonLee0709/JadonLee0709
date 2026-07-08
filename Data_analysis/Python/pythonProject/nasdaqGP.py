@@ -24,7 +24,7 @@ nasdaq_event_FFR_df['Date'] = pd.to_datetime(nasdaq_event_FFR_df['Date'])
 
 nasdaq_merge_df = pd.merge(
     nasdaq_csv_df,
-    nasdaq_event_FFR_df[['Date', 'FedRate']],
+    nasdaq_event_FFR_df[['Date', 'FedRate', 'FedRateChange']],
     on='Date',
     how='left',
     suffixes=('', '_ffr')
@@ -33,7 +33,8 @@ nasdaq_merge_df['FedRate'] = nasdaq_merge_df['FedRate_ffr'].ffill()
 
 
 # ── 1. 연준의 기준금리와 주가의 관계 ──────────────────────────────────────────
-
+print("1. 연준의 기준금리와 주가의 관계 (chart)")
+print()
 fig_trend, ax_trend_1 = plt.subplots(figsize=(14, 6))
 ax_trend_2 = ax_trend_1.twinx()
 
@@ -55,8 +56,8 @@ plt.show()
 
 
 # ── 2. 금리인상 직후 수익률 변화 ──────────────────────────────────────────
-
-
+print("2. 금리인상 직후 수익률 변화")
+print()
 # 연산
 rate_up = nasdaq_event_FFR_df[nasdaq_event_FFR_df['FedRateChange'] > 0 ] # FedRateChage = 전날대비 금리 변화 (평소에는 0). 즉 금리가 상승한 날
 
@@ -69,8 +70,6 @@ for date in rate_up['Date']:
         change_price = (after.values[0] - before.values[0]) / before.values[0] * 100
         rate_up_price_result.append({'Date': date, 'Change(%)': round(change_price, 2)})
 
-print("Rate up price movement")
-print()
 print(pd.DataFrame(rate_up_price_result))
 print()
 
@@ -114,6 +113,8 @@ plt.grid(True)
 plt.show()
 
 # ── 3. 금리인하 직후 수익률 변화 ──────────────────────────────────────────
+print("3. 금리인하 직후 수익률 변화")
+print()
 rate_down = nasdaq_event_FFR_df[nasdaq_event_FFR_df['FedRateChange'] < 0 ]
 
 rate_down_after30_result = []
@@ -127,7 +128,9 @@ for date in rate_down['Date']:
 
 results_rate_down_after30_df = pd.DataFrame(rate_down_after30_result)
 print(results_rate_down_after30_df)
+print()
 print("평균 수익률 :", results_rate_down_after30_df['Change(%)'].mean().round(2), "%")
+print()
 
 # 차트
 fig_rate_down_after30_chart, ax_rate_down_after30_chart = plt.subplots(figsize=(14, 6))
@@ -162,7 +165,8 @@ plt.show()
 
 
 # ── 4. 연도별 QQQ 평균 수익률 ──────────────────────────────────────────
-
+print("4. 연도별 QQQ 평균 수익률 (chart)")
+print()
 nasdaq_merge_df['Return'] = nasdaq_merge_df['Close'].pct_change() * 100 # ex) pct_change() (다음행-현재행)/현재행 즉 변화율
 nasdaq_merge_df['Year'] = nasdaq_merge_df['Date'].dt.year
 nasdaq_groupby = nasdaq_merge_df.groupby('Year')['Return'].mean().round(2)
@@ -180,10 +184,27 @@ plt.tight_layout()
 plt.grid(True)
 plt.show()
 
-# ── 5. 금리 0% 구간 vs 금리 5% 구간 수익률 비교 ──────────────────────────────────────────
+# ── 5. 금리 0% 구간 vs 금리 5% 구간 수익률/변동성 비교 ──────────────────────────────────────────
+print("5. 금리 0% 구간 vs 금리 5% 구간 수익률/변동성 비교")
+ffr_0_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 0) & (nasdaq_merge_df['FedRate'] < 1)]['Return'].dropna()
+ffr_5_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 5) & (nasdaq_merge_df['FedRate'] < 6)]['Return'].dropna()
+
+avg_return_0 = ffr_0_group.mean()
+avg_return_5 = ffr_5_group.mean()
+volatility_0 = ffr_0_group.std()
+volatility_5 = ffr_5_group.std()
+
+print("=== FFR 0%p 구간 ===")
+print(f"평균 수익률: {avg_return_0:.2f}%, 변동성(표준편차): {volatility_0:.2f}%  (n={len(ffr_0_group)})")
+print()
+print("=== FFR 5%p 구간 ===")
+print(f"평균 수익률: {avg_return_5:.2f}%, 변동성(표준편차): {volatility_5:.2f}%  (n={len(ffr_5_group)})")
+print()
+
+# 차트 (실제 계산값 사용)
 categories = ['FFR 0%p', 'FFR 5%p']
-returns = [0.08, 0.12]
-volatility = [1.27, 1.09]
+returns = [round(avg_return_0, 2), round(avg_return_5, 2)]
+volatility = [round(volatility_0, 2), round(volatility_5, 2)]
 
 x = range(len(categories))
 width = 0.35
@@ -198,6 +219,26 @@ ax1.set_title('QQQ Return & Volatility: FFR 0%p vs 5%p')
 ax1.legend()
 plt.show()
 
+# ── 변동성 차이 통계 검정 (Levene's test — 분산 비교에 특화) ──────────────────────
+levene_stat, levene_p = stats.levene(ffr_0_group, ffr_5_group)
+
+print("=== FFR 0%p vs 5%p 변동성(분산) 차이 Levene 검정 ===")
+print()
+print(f"0% 구간 표준편차: {volatility_0:.3f}%  (n={len(ffr_0_group)})")
+print(f"5% 구간 표준편차: {volatility_5:.3f}%  (n={len(ffr_5_group)})")
+print()
+print(f"Levene statistic: {levene_stat:.3f}")
+print()
+print(f"p-value: {levene_p:.3f}")
+print()
+
+if levene_p < 0.05:
+    print("→ 두 구간의 변동성 차이는 통계적으로 유의미함 (p < 0.05)")
+else:
+    print("→ 두 구간의 변동성 차이는 통계적으로 유의미하지 않음 (p >= 0.05)")
+
+print()
+
 # 인상 후 30일 수익률 vs 인하 후 30일 수익률 비교 (t - test)
 t_stat, p_value = stats.ttest_ind(
     results_rate_up_after30_df['Change(%)'],
@@ -206,67 +247,118 @@ t_stat, p_value = stats.ttest_ind(
 )
 
 print("=== 금리 인상 vs 인하 후 30일 수익률 t-test ===")
+print()
 print(f"인상 그룹 평균: {results_rate_up_after30_df['Change(%)'].mean():.2f}%  (n={len(results_rate_up_after30_df)})")
 print(f"인하 그룹 평균: {results_rate_down_after30_df['Change(%)'].mean():.2f}%  (n={len(results_rate_down_after30_df)})")
+print()
 print(f"t-statistic: {t_stat:.3f}")
+print()
 print(f"p-value: {p_value:.3f}")
+print()
 
 if p_value < 0.05:
     print("→ 통계적으로 유의미한 차이 있음 (p < 0.05)")
 else:
     print("→ 통계적으로 유의미한 차이 없음 (p >= 0.05)")
 
-################################################################################
-# ## 아래는 계산 아이디어 끄적거린것임
-#
-# # 금리 오른날 찾기
-# print("전날보다 금리가 오른 날")
-# nasdaq_FFR_diff = nasdaq_csv_df[nasdaq_csv_df['FedRate'].diff() > 0 ][['Date','FedRate']]
-# print(nasdaq_FFR_diff)
-#
-# # 금리 인상일 전 후 5일간 Close값 비교
-#
-# rate_up_idx_5days = nasdaq_csv_df[nasdaq_csv_df['FedRate'].diff() > 0 ].index
-#
-# results_rate_up_idx_5days = []
-# for idx in rate_up_idx_5days:
-#     before = nasdaq_csv_df.iloc[idx-5:idx]['Close'].mean()
-#     after = nasdaq_csv_df.iloc[idx:idx+5]['Close'].mean()
-#     date = nasdaq_csv_df.iloc[idx]['Date']
-#     results_rate_up_idx_5days.append({'Date': date, 'Before': round(before, 2), 'After': round(after, 2)})
-#
-# print(pd.DataFrame(results_rate_up_idx_5days))
-#
-# # 금리 인상일 전 후 30일단 Close값 비교
-#
-# rate_up_idx_30days = nasdaq_csv_df[nasdaq_csv_df['FedRate'].diff() > 0 ].index
-#
-# results_rate_up_idx_30days = []
-# for idx in rate_up_idx_30days:
-#     before = nasdaq_csv_df.iloc[idx-30:idx]['Close'].mean()
-#     after = nasdaq_csv_df.iloc[idx:idx+30]['Close'].mean()
-#     date = nasdaq_csv_df.iloc[idx]['Date']
-#     results_rate_up_idx_30days.append({'Date': date, 'Before': round(before, 2), 'After': round(after, 2)})
-#
-# print(pd.DataFrame(results_rate_up_idx_30days))
-#
-# # 금리 인상 후 30일간 Close 변화율(%)
-#
-# df_30 = pd.DataFrame(results_rate_up_idx_30days)
-# df_30['Change(%)'] = ((df_30['After'] - df_30['Before']) / df_30['Before'] * 100).round(2)
-# print(df_30)
-# print("평균 변화율 :", df_30['Change(%)'].mean().round(2), "%")
+print()
 
-# print()
-# nasdaq_merge_df['Return'] = nasdaq_merge_df['Close'].pct_change() * 100
-# nasdaq_FedRate_0 = nasdaq_merge_df[nasdaq_merge_df ['FedRate'] < 0.5]
-# nasdaq_FedRate_5 = nasdaq_merge_df[nasdaq_merge_df ['FedRate'] > 5 ]
-# #
-# print("금리 0% 구간 평균 수익률",nasdaq_FedRate_0['Return'].mean().round(2),"%")
-# print(nasdaq_FedRate_0['Return'].std().round(2))
-# print("금리 5% 구간 평균 수익률",nasdaq_FedRate_5['Return'].mean().round(2),"%")
-# print(nasdaq_FedRate_5['Return'].std().round(2))
-#
-# nasdaq_merge_df['Year'] = nasdaq_merge_df['Date'].dt.year
-# nasdaq_groupby = nasdaq_merge_df.groupby('Year')['Return'].mean().round(2)
-# print(nasdaq_groupby)
+# ── 6. 금리 동결 구간 vs 변동(인상+인하) 구간 평균 수익률 비교 ──────────────────────
+print("6. 금리 동결 구간 vs 변동(인상+인하) 구간 평균 수익률 비교")
+
+frozen_group = nasdaq_merge_df[nasdaq_merge_df['FedRateChange'] == 0]['Return'].dropna()
+changed_group = nasdaq_merge_df[nasdaq_merge_df['FedRateChange'] != 0]['Return'].dropna()
+
+print(f"동결 그룹 평균: {frozen_group.mean():.3f}%  (n={len(frozen_group)})")
+print(f"변동 그룹 평균: {changed_group.mean():.3f}%  (n={len(changed_group)})")
+print()
+
+t_stat3, p_value3 = stats.ttest_ind(frozen_group, changed_group, equal_var=False)
+
+print(f"t-statistic: {t_stat3:.3f}")
+print(f"p-value: {p_value3:.3f}")
+print()
+
+
+if p_value3 < 0.05:
+    print("→ 통계적으로 유의미한 차이 있음 (p < 0.05)")
+else:
+    print("→ 통계적으로 유의미한 차이 없음 (p >= 0.05)")
+print()
+
+# ── 7. 월별 평균 수익률 차이 (ANOVA) ──────────────────────────────────────────
+
+print("7. 월별 평균 수익률 차이 (ANOVA)")
+print()
+
+nasdaq_merge_df['Month'] = nasdaq_merge_df['Date'].dt.month
+
+monthly_groups = [
+    nasdaq_merge_df[nasdaq_merge_df['Month'] == m]['Return'].dropna()
+    for m in range(1, 13)
+]
+
+f_stat, p_value4 = stats.f_oneway(*monthly_groups)
+
+
+monthly_avg = nasdaq_merge_df.groupby('Month')['Return'].mean().round(3)
+print(monthly_avg)
+print()
+print(f"F-statistic: {f_stat:.3f}")
+print(f"p-value: {p_value4:.3f}")
+print()
+
+if p_value4 < 0.05:
+    print("→ 월별 평균 수익률에 통계적으로 유의미한 차이 있음 (p < 0.05)")
+else:
+    print("→ 월별 평균 수익률에 통계적으로 유의미한 차이 없음 (p >= 0.05)")
+
+print()
+
+# 차트
+fig_monthly, ax_monthly = plt.subplots(figsize=(14, 6))
+colors = ['red' if x > 0 else 'blue' for x in monthly_avg]
+ax_monthly.bar(monthly_avg.index, monthly_avg.values, color=colors)
+ax_monthly.axhline(y=0, color='black', linewidth=0.8)
+ax_monthly.set_title('QQQ Average Return by Month (2010-2024)')
+ax_monthly.set_xlabel('Month')
+ax_monthly.set_ylabel('Average Return (%)')
+ax_monthly.set_xticks(range(1, 13))
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# ── 8. 전일 상승/하락과 당일 상승/하락의 관련성 (카이제곱 검정) ──────────────────────
+
+print("8. 전일 상승/하락과 당일 상승/하락의 관련성 (카이제곱 검정)")
+print()
+
+# 1. 상승/하락 범주 만들기 (Return > 0이면 up, 아니면 down)
+nasdaq_merge_df['Direction'] = nasdaq_merge_df['Return'].apply(lambda x: 'up' if x > 0 else 'down')
+
+# 2. 전일 방향 컬럼 만들기 (shift로 하루 밀기)
+nasdaq_merge_df['Prev_Direction'] = nasdaq_merge_df['Direction'].shift(1)
+
+# 3. 결측치(첫 행) 제거
+chi_df = nasdaq_merge_df.dropna(subset=['Direction', 'Prev_Direction'])
+
+# 4. 교차표 만들기
+cross_tab = pd.crosstab(chi_df['Prev_Direction'], chi_df['Direction'])
+print("=== 교차표 ===")
+print()
+print(cross_tab)
+print()
+
+# 5. 카이제곱 검정
+chi2_stat, p_value5, dof, expected = stats.chi2_contingency(cross_tab)
+
+print(f"chi2-statistic: {chi2_stat:.3f}")
+print(f"p-value: {p_value5:.3f}")
+print()
+
+if p_value5 < 0.05:
+    print("→ 전일-당일 방향에 통계적으로 유의미한 관련성 있음 (p < 0.05)")
+else:
+    print("→ 전일-당일 방향에 통계적으로 유의미한 관련성 없음 (p >= 0.05)")
+
+print()
