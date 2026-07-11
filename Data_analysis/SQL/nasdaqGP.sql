@@ -196,6 +196,7 @@ FROM (
 WHERE FedRate != PrevFedRate
 ORDER BY Date;
 
+
 -- 결과: 이벤트 테이블 없이 원본 nasdaq 테이블만으로 26건의 금리 변화 시점을 정확히 재현
 -- 사용자 변수(@change_count)로 각 변화에 순번을 매겨 시계열 순서 추적 가능
 
