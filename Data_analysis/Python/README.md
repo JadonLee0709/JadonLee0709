@@ -71,7 +71,7 @@ twinx() 이중축으로 두 시계열을 함께 표시. 금리 상승기(2022~20
 
 ## 3. 통계 검정 (5가지 가설 검증)
 
-### 질문 1. 금리 인상 후 30일 vs 인하 후 30일 수익률 차이 — 독립표본 t-test
+### Q1. 금리 인상 후 30일 vs 인하 후 30일 수익률 차이 — 독립표본 t-test
 
 이벤트 날짜 기준 30일 후 종가로 수익률을 계산했습니다. 정확히 30일 후가 비거래일(주말/공휴일)인 이벤트는 계산에서 제외하는 방식을 사용했습니다.
 
@@ -100,7 +100,7 @@ t_stat, p_value = stats.ttest_ind(
 - 인하 후 평균 +3.33% vs 인상 후 +0.45% — 수치상 차이는 있으나 **유의하지 않음**
 - 원인: 인하 표본이 6건에 불과해 검정력 부족 → 질문 3으로 보완 설계
 
-### 질문 2. 금리 0%대 vs 5%대 구간 변동성 차이 — Levene's test
+### Q2. 금리 0%대 vs 5%대 구간 변동성 차이 — Levene's test
 
 ```python
 ffr_0_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 0) & (nasdaq_merge_df['FedRate'] < 1)]['Return'].dropna()
@@ -113,7 +113,7 @@ levene_stat, levene_p = stats.levene(ffr_0_group, ffr_5_group)
 - 0%대 변동성 1.244 vs 5%대 1.075 — **통계적으로 유의하지 않음**
 - t-test가 아닌 Levene을 쓴 이유: 비교 대상이 평균이 아니라 **분산(변동성)**이기 때문
 
-### 질문 3. 금리 동결 구간 vs 변동 구간 평균 수익률 — 독립표본 t-test
+### Q3. 금리 동결 구간 vs 변동 구간 평균 수익률 — 독립표본 t-test
 
 ```python
 frozen_group = nasdaq_merge_df[nasdaq_merge_df['FedRateChange'] == 0]['Return'].dropna()
@@ -126,7 +126,7 @@ t_stat3, p_value3 = stats.ttest_ind(frozen_group, changed_group, equal_var=False
 - 질문 1의 표본 부족(인하 6건)을 보완하기 위해 인상+인하를 묶어 변동 그룹(n=26)으로 확장
 - 동결 평균 0.079% vs 변동 -0.388% — 여전히 **유의하지 않음**
 
-### 질문 4. 월별(1~12월) 평균 수익률 차이 — ANOVA
+### Q4. 월별(1~12월) 평균 수익률 차이 — ANOVA
 
 ```python
 nasdaq_merge_df['Month'] = nasdaq_merge_df['Date'].dt.month
@@ -143,7 +143,7 @@ f_stat, p_value4 = stats.f_oneway(*monthly_groups)
 - 12개 그룹을 동시에 비교해야 하므로 t-test 반복이 아닌 **ANOVA** 사용 (다중비교 문제 회피)
 - 7월(+0.199%) 최고, 9월(-0.034%) 유일한 마이너스 — **유의하지 않음**
 
-### 질문 5. 전일 상승/하락과 당일 상승/하락의 연관성 — 카이제곱 검정
+### Q5. 전일 상승/하락과 당일 상승/하락의 연관성 — 카이제곱 검정
 
 ```python
 nasdaq_merge_df['Direction'] = nasdaq_merge_df['Return'].apply(lambda x: 'up' if x > 0 else 'down')
