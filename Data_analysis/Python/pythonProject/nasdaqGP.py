@@ -184,39 +184,39 @@ plt.tight_layout()
 plt.grid(True)
 plt.show()
 
-# ── 5. 금리 0% 구간 vs 금리 5% 구간 수익률/변동성 비교 ──────────────────────────────────────────
-print("5. 금리 0% 구간 vs 금리 5% 구간 수익률/변동성 비교")
-ffr_0_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 0) & (nasdaq_merge_df['FedRate'] < 1)]['Return'].dropna()
-ffr_5_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 5) & (nasdaq_merge_df['FedRate'] < 6)]['Return'].dropna()
+# ── 5. 금리 구간별(4구간) 수익률/변동성 비교 ──────────────────────────────────────────
+print("5-2. 금리 구간별(4구간) 수익률/변동성 비교")
+ffr_zero_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 0) & (nasdaq_merge_df['FedRate'] < 1)]['Return'].dropna()
+ffr_low_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 1) & (nasdaq_merge_df['FedRate'] < 3)]['Return'].dropna()
+ffr_mid_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 3) & (nasdaq_merge_df['FedRate'] < 5)]['Return'].dropna()
+ffr_high_group = nasdaq_merge_df[nasdaq_merge_df['FedRate'] >= 5]['Return'].dropna()
 
-avg_return_0 = ffr_0_group.mean()
-avg_return_5 = ffr_5_group.mean()
-volatility_0 = ffr_0_group.std()
-volatility_5 = ffr_5_group.std()
+group_labels = ['0~1%\n(Zero)', '1~3%\n(Low)', '3~5%\n(Medium)', '5%+\n(High)']
+group_data = [ffr_zero_group, ffr_low_group, ffr_mid_group, ffr_high_group]
 
-print("=== FFR 0%p 구간 ===")
-print(f"평균 수익률: {avg_return_0:.2f}%, 변동성(표준편차): {volatility_0:.2f}%  (n={len(ffr_0_group)})")
-print()
-print("=== FFR 5%p 구간 ===")
-print(f"평균 수익률: {avg_return_5:.2f}%, 변동성(표준편차): {volatility_5:.2f}%  (n={len(ffr_5_group)})")
-print()
+group_returns = [round(g.mean(), 4) for g in group_data]
+group_volatility = [round(g.std(), 4) for g in group_data]
 
-# 차트 (실제 계산값 사용)
-categories = ['FFR 0%p', 'FFR 5%p']
-returns = [round(avg_return_0, 2), round(avg_return_5, 2)]
-volatility = [round(volatility_0, 2), round(volatility_5, 2)]
+for label, g, r, v in zip(group_labels, group_data, group_returns, group_volatility):
+    print(f"=== {label.replace(chr(10), ' ')} 구간 ===")
+    print(f"평균 수익률: {r:.4f}%, 변동성(표준편차): {v:.4f}%  (n={len(g)})")
+    print()
 
-x = range(len(categories))
+# 차트
+x = range(len(group_labels))
 width = 0.35
 
-fig, ax1 = plt.subplots(figsize=(8,6))
-ax1.bar([i - width/2 for i in x], returns, width, label='Avg Return(%)', color='blue')
-ax1.bar([i + width/2 for i in x], volatility, width, label='Volatility(%)', color='red')
-ax1.set_xticks(x)
-ax1.set_xticklabels(categories)
-ax1.set_ylabel('%')
-ax1.set_title('QQQ Return & Volatility: FFR 0%p vs 5%p')
-ax1.legend()
+fig, ax_group = plt.subplots(figsize=(10, 6))
+ax_group.bar([i - width/2 for i in x], group_returns, width, label='Avg Return(%)', color='blue')
+ax_group.bar([i + width/2 for i in x], group_volatility, width, label='Volatility(%)', color='red')
+ax_group.set_xticks(x)
+ax_group.set_xticklabels(group_labels)
+ax_group.set_ylabel('%')
+ax_group.set_title('QQQ Return & Volatility by Fed Rate Group')
+ax_group.legend()
+plt.grid(True, axis='y', alpha=0.3)
+plt.tight_layout()
+plt.savefig('image/Rate_group_comparison.png', dpi=100)
 plt.show()
 
 # ── 변동성 차이 통계 검정 (Levene's test — 분산 비교에 특화) ──────────────────────
