@@ -186,6 +186,7 @@ plt.show()
 
 # ── 5. 금리 구간별(4구간) 수익률/변동성 비교 ──────────────────────────────────────────
 print("5-2. 금리 구간별(4구간) 수익률/변동성 비교")
+print()
 ffr_zero_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 0) & (nasdaq_merge_df['FedRate'] < 1)]['Return'].dropna()
 ffr_low_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 1) & (nasdaq_merge_df['FedRate'] < 3)]['Return'].dropna()
 ffr_mid_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 3) & (nasdaq_merge_df['FedRate'] < 5)]['Return'].dropna()
@@ -216,16 +217,15 @@ ax_group.set_title('QQQ Return & Volatility by Fed Rate Group')
 ax_group.legend()
 plt.grid(True, axis='y', alpha=0.3)
 plt.tight_layout()
-plt.savefig('image/Rate_group_comparison.png', dpi=100)
 plt.show()
 
 # ── 변동성 차이 통계 검정 (Levene's test — 분산 비교에 특화) ──────────────────────
-levene_stat, levene_p = stats.levene(ffr_0_group, ffr_5_group)
+levene_stat, levene_p = stats.levene(ffr_zero_group, ffr_high_group)
 
 print("=== FFR 0%p vs 5%p 변동성(분산) 차이 Levene 검정 ===")
 print()
-print(f"0% 구간 표준편차: {volatility_0:.3f}%  (n={len(ffr_0_group)})")
-print(f"5% 구간 표준편차: {volatility_5:.3f}%  (n={len(ffr_5_group)})")
+print(f"0% 구간 표준편차: {group_volatility[0]:.3f}%  (n={len(ffr_zero_group)})")
+print(f"5% 구간 표준편차: {group_volatility[3]:.3f}%  (n={len(ffr_high_group)})")
 print()
 print(f"Levene statistic: {levene_stat:.3f}")
 print()
