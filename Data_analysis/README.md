@@ -61,7 +61,12 @@
 - 분석 코드: [`Python/pythonProject/nasdaqGP.py`](./Python/pythonProject/nasdaqGP.py)
 - 상세 문서: [`Python/README.md`](./Python/README.md)
 
-*(차트 이미지는 추후 `Python/image/` 폴더에 추가 예정)*
+*![QQQ 종가 vs Fed 금리](Python/image/QQQ_price_movement.png)
+![연간 수익률](Python/image/QQQ_annual_return.png)
+![월별 평균 수익률](Python/image/QQQ_AVG_return_by_month.png)
+![변동성 비교](Python/image/Volatility_comparison.png)
+![금리 인상 후 30일 수익률](Python/image/Rate_up_30d_return_chart.png)
+![금리 인하 후 30일 수익률](Python/image/Rate_down_30d_return_chart.png)*
 
 ---
 
