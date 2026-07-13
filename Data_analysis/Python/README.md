@@ -1,124 +1,161 @@
-# 금리 사이클과 나스닥100 ETF(QQQ) 수익률 분석
+# Python 분석
 
-## 프로젝트 개요
+pandas 기반 데이터 전처리, 시각화, 그리고 scipy를 활용한 5가지 통계 검정을 수행한 폴더입니다.
 
-미국 연준(Fed)의 기준금리 변화가 나스닥100 ETF(QQQ)의 수익률과 변동성에 어떤 영향을 미치는지 분석한 프로젝트입니다. 2010~2024년 QQQ 일별 시세 데이터와 Fed 금리 변경 이벤트 데이터를 결합하여, 금리 인상/인하/동결 국면별 수익률 차이를 통계적으로 검증했습니다.
-
-- **기간**: 2010 ~ 2024
-- **데이터 규모**: 약 3,700 거래일 (QQQ 기준)
-- **사용 기술**: Python (pandas, matplotlib), MySQL, 통계 검정(t-test)
+- **분석 코드:** [`pythonProject/nasdaqGP.py`](./pythonProject/nasdaqGP.py)
+- **사용 라이브러리:** pandas, matplotlib, scipy.stats
+- **프로젝트 전체 개요:** [루트 README](../README.md) 참고
 
 ---
 
-## 분석 질문
+## 1. 데이터 전처리
 
-이 프로젝트는 다음 5가지 질문을 가설(H0/H1) 형태로 세우고 검증하는 방식으로 진행했습니다.
+거래일 기준(QQQ 시세)과 이벤트 기준(FFR 금리)의 두 데이터를 날짜로 병합했습니다.
 
-| # | 질문 | H0 | H1 | 검정 방법 | 상태 |
-|---|---|---|---|---|---|
-| 1 | 금리 인상 후 30일 수익률과 인하 후 30일 수익률은 다른가? | 차이가 없다 | 차이가 있다 | 독립표본 t-test | ✅ 완료 (p=0.594) |
-| 2 | 금리 0%대와 5%대 구간에서 QQQ 변동성은 다른가? | 차이가 없다 | 차이가 있다 | Levene's test | ✅ 완료 (p=0.288, 유의하지 않음) |
-| 3 | 금리 동결 구간과 변동(인상+인하) 구간의 평균 수익률은 다른가? | 차이가 없다 | 차이가 있다 | 독립표본 t-test | ✅ 완료 (p=0.443, 유의하지 않음) |
-| 4 | 월별(1~12월) 평균 수익률에 차이가 있는가? | 차이가 없다 | 차이가 있다 | ANOVA | ✅ 완료 (p=0.711, 유의하지 않음) |
-| 5 | 전일 상승/하락과 당일 상승/하락은 관련이 있는가? | 독립이다 | 관련이 있다 | 카이제곱 검정 | ✅ 완료 (p=0.858, 유의하지 않음) |
-
-> 질문 3은 질문 1의 한계(표본 6건, 검정력 부족)를 보완하기 위해 설계했습니다.
-
----
-
-## 데이터
-
-| 파일 | 설명 |
-|---|---|
-| `nasdaq.csv` | QQQ ETF 2010~2024 일별 시세 (Open/High/Low/Close/Volume) |
-| `nasdaq_event_FFR_ver_3.csv` | Fed 기준금리 변경 이벤트를 거래일 기준으로 매칭한 데이터 |
-
-**전처리**
-- 두 데이터의 기준 불일치 해결: 거래일 기준(QQQ) vs 달력 기준(FFR) → 주말/공휴일 제거 및 중복 날짜 처리 후 병합
-- 결측치 처리: `ffill()` 적용 후 잔여 결측 0으로 대체
-- 파생변수 생성:
-  - `daily_return` = (Close - Close.shift(1)) / Close.shift(1) * 100
-  - `rate_regime` = CASE WHEN FedRateChange > 0 THEN '인상' WHEN FedRateChange < 0 THEN '인하' ELSE '동결'
-
----
-
-## 분석 내용
-
-1. **금리-주가 관계 시각화**: `twinx()`를 활용한 QQQ 종가 vs Fed 금리 이중축 차트
-2. **연간 수익률**: 2010~2024년 중 2022년만 유일하게 마이너스 수익률
-3. **변동성 비교**: 금리 0% 구간 vs 5% 구간의 일간 수익률 표준편차 비교
-4. **금리 변경 이벤트 윈도우 분석**: 인상/인하 발생일 기준 전후 30일 수익률 비교
-5. **통계 검증**: 독립표본 t-test로 인상/인하 후 수익률 차이 검증 (p=0.594, 유의하지 않음)
-6. **변동성 통계 검증**: Levene 검정으로 0%대 vs 5%대 구간 변동성 차이 검증 (p=0.288, 유의하지 않음)
-7. **금리 국면별 수익률 비교**: 동결 구간 vs 변동(인상+인하) 구간 평균 수익률 t-test (p=0.443, 유의하지 않음)
-8. **월별 계절성 분석**: ANOVA로 1~12월 평균 수익률 차이 검증 (p=0.711, 유의하지 않음)
-9. **모멘텀/연속성 분석**: 카이제곱 검정으로 전일-당일 상승/하락 연관성 검증 (p=0.858, 유의하지 않음)
-
-*(그래프 이미지는 `/images` 폴더에 있습니다 — 실제 파일명으로 아래 링크 교체 필요)*
-
-![금리-주가 이중축 차트](image/QQQ_price_movement.png)
-![연간 수익률](image/QQQ_annual_return.png)
-![변동성 비교](image/Volatility_comparison.png)
-![월별 평균 수익률](image/QQQ_avg_return_by_month.png)
-![금리 인상 후 30일 수익률](image/Rate_up_30d_return_(chart).png)
-![금리 인하 후 30일 수익률](image/Rate_down_30d_return_(chart).png)
-
----
-
-## SQL 분석
-
-위의 Python으로 분석한 것을 SQL로 진행을 하였습니다.
-
-- 파일 위치: `/sql/analysis_queries.sql`
-- 주요 쿼리:
-  - `LAG()` 윈도우 함수를 활용한 전일 대비 수익률 계산
-  - `CASE WHEN`을 활용한 금리 국면(rate_regime) 분류
-  - `GROUP BY rate_regime`를 통한 국면별 평균 수익률 집계
-  - 사용자 변수(`@var :=`)를 활용한 누적 계산 예시
-
-*(쿼리 코드 및 실행 결과는 작성 후 이 섹션에 채워 넣을 것)*
-
----
-
-## 주요 결과 (요약)
-
-- 금리 인하 시기의 평균 30일 수익률(+3.33%)이 인상 시기보다 높게 나타났으나, 통계적으로 유의미한 차이는 아니었음 (p=0.594)
-- 2022년은 15년간 유일한 마이너스 연간 수익률 기록 — 급격한 금리 인상 시기와 일치
-- 금리 0%대(변동성 1.244%)와 5%대(1.075%) 구간의 변동성 차이는 통계적으로 유의미하지 않음 (Levene 검정, p=0.288)
-- 금리 동결 구간(평균 0.079%)과 변동 구간(평균 -0.388%)의 평균 수익률 차이도 유의미하지 않음 (p=0.443), 다만 변동 구간 표본(n=26)이 작아 근본적 한계는 남아있음
-- 월별 평균 수익률은 7월(0.199%)이 최고, 9월(-0.034%)이 유일한 마이너스를 기록했으나 ANOVA 결과 통계적으로 유의미한 차이는 없었음 (p=0.711)
-
----
-## 한계점 및 개선 방향
-
-- 인상/인하 이벤트 표본이 각각 소수(인하 6건 등)에 불과해 통계적 검정력이 낮음 → 질문 3(동결 vs 변동)으로 표본 확장 시도
-- 상관관계 분석이며 인과관계를 증명하지는 않음
-- 나스닥100(QQQ) 단일 지수만 분석 — S&P500, 섹터별 ETF와 비교 시 더 풍부한 해석 가능
-- 뉴스/이벤트 텍스트 감정분석 추가 시 금리 발표 영향을 더 정밀하게 측정 가능
-
----
-
-## 실행 방법
-
-```bash
-git clone <repo-url>
-cd <repo-name>
-pip install -r requirements.txt
-python analysis.py
+```python
+nasdaq_merge_df = pd.merge(
+    nasdaq_csv_df,
+    nasdaq_event_FFR_df[['Date', 'FedRate', 'FedRateChange']],
+    on='Date',
+    how='left',
+    suffixes=('', '_ffr')
+)
+nasdaq_merge_df['FedRate'] = nasdaq_merge_df['FedRate_ffr'].ffill()
 ```
 
-## 폴더 구조
+**포인트:** 금리 데이터에 `ffill()`을 쓴 이유 — 금리는 "발표 후 다음 변경까지 유지"되는 값이라, 빈 날짜를 직전 값으로 채우는 것이 데이터 성격에 부합.
 
+```python
+# 일별 수익률 파생변수
+nasdaq_merge_df['Return'] = nasdaq_merge_df['Close'].pct_change() * 100
 ```
-.
-├── data/
-│   ├── nasdaq.csv
-│   └── nasdaq_event_FFR_ver_3.csv
-├── sql/
-│   └── analysis_queries.sql
-├── images/
-│   └── (차트 이미지들)
-├── analysis.py
-├── requirements.txt
-└── README.md
+
+---
+
+## 2. 시각화
+
+| 차트 | 기법 | 목적 |
+|---|---|---|
+| QQQ 종가 vs Fed 금리 | `twinx()` 이중축 (`ax_trend_1`, `ax_trend_2`) | 단위가 다른 두 시계열을 한 화면에 비교 |
+| 인상/인하 후 30일 수익률 | 이벤트별 막대 + 조건부 색상 | 개별 이벤트의 수익률 분포 확인 |
+| 연간 수익률 | `groupby('Year')['Return'].mean()` + bar | 연도별 성과 (2022년 유일 마이너스 확인) |
+| 월별 평균 수익률 | `groupby('Month')` + 조건부 색상 | 계절성 시각 확인 |
+
+*(차트 이미지는 추후 `image/` 폴더에 추가 예정)*
+
+---
+
+## 3. 통계 검정 (5가지 가설 검증)
+
+### 질문 1. 금리 인상 후 30일 vs 인하 후 30일 수익률 차이 — 독립표본 t-test
+
+이벤트 날짜 기준 30일 후 종가로 수익률을 계산했습니다. 정확히 30일 후가 비거래일(주말/공휴일)인 이벤트는 계산에서 제외하는 방식을 사용했습니다.
+
+```python
+rate_up = nasdaq_event_FFR_df[nasdaq_event_FFR_df['FedRateChange'] > 0]
+
+rate_up_price_result = []
+for date in rate_up['Date']:
+    before = nasdaq_csv_df[nasdaq_csv_df['Date'] == date]['Close']
+    after = nasdaq_csv_df[nasdaq_csv_df['Date'] == date + pd.Timedelta(days=30)]['Close']
+
+    if len(before) > 0 and len(after) > 0:  # 비거래일이면 빈 Series → 제외
+        change_price = (after.values[0] - before.values[0]) / before.values[0] * 100
+        rate_up_price_result.append({'Date': date, 'Change(%)': round(change_price, 2)})
 ```
+
+```python
+t_stat, p_value = stats.ttest_ind(
+    results_rate_up_after30_df['Change(%)'],
+    results_rate_down_after30_df['Change(%)'],
+    equal_var=False  # Welch's t-test (두 그룹 분산이 같다고 가정하지 않음)
+)
+# 결과: p = 0.594
+```
+
+- 인하 후 평균 +3.33% vs 인상 후 +0.45% — 수치상 차이는 있으나 **유의하지 않음**
+- 원인: 인하 표본이 6건에 불과해 검정력 부족 → 질문 3으로 보완 설계
+
+### 질문 2. 금리 0%대 vs 5%대 구간 변동성 차이 — Levene's test
+
+```python
+ffr_0_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 0) & (nasdaq_merge_df['FedRate'] < 1)]['Return'].dropna()
+ffr_5_group = nasdaq_merge_df[(nasdaq_merge_df['FedRate'] >= 5) & (nasdaq_merge_df['FedRate'] < 6)]['Return'].dropna()
+
+levene_stat, levene_p = stats.levene(ffr_0_group, ffr_5_group)
+# 결과: p = 0.288
+```
+
+- 0%대 변동성 1.244 vs 5%대 1.075 — **통계적으로 유의하지 않음**
+- t-test가 아닌 Levene을 쓴 이유: 비교 대상이 평균이 아니라 **분산(변동성)**이기 때문
+
+### 질문 3. 금리 동결 구간 vs 변동 구간 평균 수익률 — 독립표본 t-test
+
+```python
+frozen_group = nasdaq_merge_df[nasdaq_merge_df['FedRateChange'] == 0]['Return'].dropna()
+changed_group = nasdaq_merge_df[nasdaq_merge_df['FedRateChange'] != 0]['Return'].dropna()
+
+t_stat3, p_value3 = stats.ttest_ind(frozen_group, changed_group, equal_var=False)
+# 결과: p = 0.443
+```
+
+- 질문 1의 표본 부족(인하 6건)을 보완하기 위해 인상+인하를 묶어 변동 그룹(n=26)으로 확장
+- 동결 평균 0.079% vs 변동 -0.388% — 여전히 **유의하지 않음**
+
+### 질문 4. 월별(1~12월) 평균 수익률 차이 — ANOVA
+
+```python
+nasdaq_merge_df['Month'] = nasdaq_merge_df['Date'].dt.month
+
+monthly_groups = [
+    nasdaq_merge_df[nasdaq_merge_df['Month'] == m]['Return'].dropna()
+    for m in range(1, 13)
+]
+
+f_stat, p_value4 = stats.f_oneway(*monthly_groups)
+# 결과: p = 0.711
+```
+
+- 12개 그룹을 동시에 비교해야 하므로 t-test 반복이 아닌 **ANOVA** 사용 (다중비교 문제 회피)
+- 7월(+0.199%) 최고, 9월(-0.034%) 유일한 마이너스 — **유의하지 않음**
+
+### 질문 5. 전일 상승/하락과 당일 상승/하락의 연관성 — 카이제곱 검정
+
+```python
+nasdaq_merge_df['Direction'] = nasdaq_merge_df['Return'].apply(lambda x: 'up' if x > 0 else 'down')
+nasdaq_merge_df['Prev_Direction'] = nasdaq_merge_df['Direction'].shift(1)
+
+chi_df = nasdaq_merge_df.dropna(subset=['Direction', 'Prev_Direction'])
+cross_tab = pd.crosstab(chi_df['Prev_Direction'], chi_df['Direction'])
+
+chi2_stat, p_value5, dof, expected = stats.chi2_contingency(cross_tab)
+# 결과: p = 0.858
+```
+
+- 수익률 크기가 아닌 **방향(범주형)** 간 독립성 검정이므로 카이제곱 사용
+- 전일 방향과 당일 방향은 **독립** — 단기 모멘텀 없음
+
+---
+
+## 4. 종합 해석
+
+5개 검정 모두 non-significant라는 결과는 실패가 아니라 그 자체로 결론입니다:
+
+> **금리 단일 변수로는 나스닥 단기 수익률/변동성을 유의미하게 설명하기 어렵다.**
+
+이는 시장이 금리 발표를 사전에 가격에 반영(pricing-in)한다는 효율적 시장 관점과도 부합합니다. 각 검정에서 어떤 방법을 왜 선택했는지 — 평균 비교→t-test, 분산 비교→Levene, 다중 그룹→ANOVA, 범주 독립성→카이제곱 — 가 이 분석의 핵심입니다.
+
+---
+
+## SQL 분석과의 차이 참고
+
+- **30일 수익률 계산 방식**: Python은 "정확히 30일 후가 거래일인 이벤트만 계산"하는 방식, SQL(Q2)은 "30일 경과 후 첫 거래일로 보정"하는 방식으로 접근이 다름. 두 방식 모두 인하 그룹 평균 +3.33%로 동일한 결론에 도달함
+- **변동성 계산**: pandas `.std()`는 표본표준편차(ddof=1), MySQL `STDDEV()`는 모표준편차 기준
+
+---
+
+## 한계점
+
+- 이벤트 표본 소수(인상 20건, 인하 6건)로 검정력 낮음
+- 상관관계 분석이며 인과 증명 아님
+- 전체 한계점 및 개선 방향은 [루트 README](../README.md) 참고
