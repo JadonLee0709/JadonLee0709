@@ -41,7 +41,31 @@ nasdaq_merge_df['Return'] = nasdaq_merge_df['Close'].pct_change() * 100
 | 연간 수익률 | `groupby('Year')['Return'].mean()` + bar | 연도별 성과 (2022년 유일 마이너스 확인) |
 | 월별 평균 수익률 | `groupby('Month')` + 조건부 색상 | 계절성 시각 확인 |
 
-*(차트 이미지는 추후 `image/` 폴더에 추가 예정)*
+## 시각화
+
+**QQQ 종가 vs Fed 금리**
+twinx() 이중축으로 두 시계열을 함께 표시. 금리 상승기(2022~2023)와 QQQ 하락 구간이 겹치는 것을 확인할 수 있음.
+![QQQ 종가 vs Fed 금리](image/QQQ_price_movement.png)
+
+**연간 수익률 (2010~2024)**
+2022년만 유일하게 마이너스 수익률 기록 — 급격한 금리 인상 시기와 일치.
+![연간 수익률](image/QQQ_annual_return.png)
+
+**월별 평균 수익률**
+7월이 최고, 9월이 유일한 마이너스였으나 ANOVA 결과 통계적으로 유의미한 차이는 없음(p=0.711).
+![월별 평균 수익률](image/QQQ_AVG_return_by_month.png)
+
+**금리 0%대 vs 5%대 변동성 비교**
+두 구간의 변동성 차이는 Levene 검정 결과 유의미하지 않음(p=0.288).
+![변동성 비교](image/Volatility_comparison.png)
+
+**금리 인상 후 30일 수익률**
+개별 이벤트별 수익률 분포. 평균 +0.45%.
+![금리 인상 후 30일 수익률](image/Rate_up_30d_return_chart.png)
+
+**금리 인하 후 30일 수익률**
+개별 이벤트별 수익률 분포. 평균 +3.33%, 다만 표본 6건.
+![금리 인하 후 30일 수익률](image/Rate_down_30d_return_chart.png)
 
 ---
 
